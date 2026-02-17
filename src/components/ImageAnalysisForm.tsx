@@ -15,7 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 const initialState: AnalysisState = {
   error: null,
   analysisResult: null,
-  recommendationResult: null,
 };
 
 function SubmitButton() {
@@ -43,7 +42,7 @@ export function ImageAnalysisForm() {
         description: state.error,
       });
     }
-    if(state.analysisResult || state.recommendationResult) {
+    if(state.analysisResult) {
         formRef.current?.reset();
         setPreviewUrl(null);
     }
@@ -95,7 +94,6 @@ export function ImageAnalysisForm() {
                 className="hidden"
                 onChange={handleFileChange}
                 ref={fileInputRef}
-                required
               />
             </div>
 
@@ -151,7 +149,7 @@ export function ImageAnalysisForm() {
             </Card>
         )}
 
-        {state.recommendationResult && (
+        {state.analysisResult?.recommendations && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><Droplets className="text-primary" />AI Recommendations</CardTitle>
@@ -159,21 +157,21 @@ export function ImageAnalysisForm() {
             <CardContent className="space-y-6">
                 <div>
                     <h3 className="font-semibold flex items-center gap-2 mb-1"><Clock className="w-4 h-4"/>Urgency Level</h3>
-                    <p className="text-sm font-bold text-primary">{state.recommendationResult.urgencyLevel}</p>
+                    <p className="text-sm font-bold text-primary">{state.analysisResult.recommendations.urgencyLevel}</p>
                 </div>
                 <div>
                     <h3 className="font-semibold flex items-center gap-2 mb-1"><Droplets className="w-4 h-4"/>Treatment</h3>
-                    <p className="text-sm leading-relaxed">{state.recommendationResult.treatmentRecommendation}</p>
+                    <p className="text-sm leading-relaxed">{state.analysisResult.recommendations.treatmentRecommendation}</p>
                 </div>
                 <div>
                     <h3 className="font-semibold flex items-center gap-2 mb-1"><Shield className="w-4 h-4"/>Prevention</h3>
-                    <p className="text-sm leading-relaxed">{state.recommendationResult.preventionMeasures}</p>
+                    <p className="text-sm leading-relaxed">{state.analysisResult.recommendations.preventionMeasures}</p>
                 </div>
                 <Alert variant="default" className="bg-accent/10">
                     <AlertCircle className="h-4 w-4 text-accent" />
                     <AlertTitle className="text-accent">Disclaimer</AlertTitle>
                     <AlertDescription className="text-accent-foreground/80">
-                    {state.recommendationResult.disclaimer}
+                    {state.analysisResult.recommendations.disclaimer}
                     </AlertDescription>
                 </Alert>
             </CardContent>

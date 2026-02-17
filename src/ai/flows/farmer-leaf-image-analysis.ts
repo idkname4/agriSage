@@ -1,6 +1,7 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for analyzing an image of a plant leaf to identify potential diseases or pests.
+ * @fileOverview A Genkit flow for analyzing an image of a plant leaf to identify potential diseases or pests
+ * and provide detailed recommendations.
  *
  * - farmerLeafImageAnalysis - A function that handles the image analysis process.
  * - FarmerLeafImageAnalysisInput - The input type for the farmerLeafImageAnalysis function.
@@ -21,12 +22,23 @@ const FarmerLeafImageAnalysisInputSchema = z.object({
     .string()
     .optional()
     .describe(
-      'Optional additional description from the farmer about what they observe.'
+      'Optional additional description from the farmer about what they observe (e.g., crop type, location).'
     ),
 });
 export type FarmerLeafImageAnalysisInput = z.infer<
   typeof FarmerLeafImageAnalysisInputSchema
 >;
+
+const RecommendationsSchema = z.object({
+  treatmentRecommendation: z.string().describe('Actionable steps to treat the identified crop problem.'),
+  urgencyLevel: z.enum(['Immediate', 'High', 'Moderate', 'Low']).describe('The recommended urgency level for addressing the problem.'),
+  preventionMeasures: z.string().describe('Steps to prevent the recurrence of the crop problem.'),
+  disclaimer: z
+    .string()
+    .describe(
+      'A disclaimer indicating that the recommendations are AI-generated and should be verified with local agricultural experts.'
+    ),
+});
 
 const FarmerLeafImageAnalysisOutputSchema = z.object({
   identification: z.object({
@@ -37,8 +49,8 @@ const FarmerLeafImageAnalysisOutputSchema = z.object({
     severity: z.enum(['Low', 'Medium', 'High']).describe('The severity level of the detected issue.'),
     confidence: z.string().describe('The AI model\'s confidence level in the identification (e.g., "High", "Medium", "Low", or a percentage).'),
   }).describe('Identification results for the plant and any detected issues.'),
-  recommendations: z.array(z.string()).describe('A list of initial actionable recommendations for the farmer.'),
-}).describe('Output containing plant issue identification and recommendations.');
+  recommendations: RecommendationsSchema.optional().describe('Detailed recommendations if an issue is detected.'),
+}).describe('Output containing plant issue identification and detailed recommendations.');
 export type FarmerLeafImageAnalysisOutput = z.infer<
   typeof FarmerLeafImageAnalysisOutputSchema
 >;
@@ -53,8 +65,24 @@ const prompt = ai.definePrompt({
   name: 'farmerLeafImageAnalysisPrompt',
   input: { schema: FarmerLeafImageAnalysisInputSchema },
   output: { schema: FarmerLeafImageAnalysisOutputSchema },
-  model: googleAI.model('gemini-2.5-flash-image'), // Specify the image model here
-  prompt: `You are an expert agricultural AI assistant specializing in plant disease and pest identification.\nAnalyze the provided image of a plant leaf and any accompanying description to identify potential issues.\n\nIf the image does not clearly show a plant leaf or is irrelevant, set 'isPlant' to false and provide a generic message.\nOtherwise, identify the plant type, determine if any disease or pest issue is present, describe it, assess its severity (Low, Medium, High), and provide a confidence level.\nFinally, offer 2-3 initial, actionable recommendations for the farmer based on your findings.\n\nInput Description: {{{description}}}\nImage of Leaf: {{media url=photoDataUri}}`,
+  model: googleAI.model('gemini-2.5-flash-image'),
+  prompt: `You are an expert agricultural AI assistant for AgriSage. Your task is to analyze a plant leaf image and provide a comprehensive analysis and recommendations.
+
+Analyze the provided image and any accompanying description to identify potential issues.
+
+1.  **Image validation:** If the image does not clearly show a plant leaf, set 'isPlant' to false and stop.
+2.  **Identification:** If it is a plant leaf, identify the plant type, determine if any disease or pest is present, describe the issue, assess its severity (Low, Medium, High), and provide a confidence level for your analysis.
+3.  **Recommendations:** If an issue is detected, provide detailed, localized recommendations. This should include:
+    *   **Treatment:** Actionable steps to treat the problem.
+    *   **Urgency:** An urgency level ('Immediate', 'High', 'Moderate', 'Low').
+    *   **Prevention:** Steps to prevent recurrence.
+    *   **Disclaimer:** A standard disclaimer to consult local experts.
+    *   Consider the user's location if provided.
+
+Input Description: {{{description}}}
+Image of Leaf: {{media url=photoDataUri}}
+
+Generate the full output according to the schema. If no issue is detected, do not include the recommendations field.`,
 });
 
 const farmerLeafImageAnalysisFlow = ai.defineFlow(
@@ -64,7 +92,7 @@ const farmerLeafImageAnalysisFlow = ai.defineFlow(
     outputSchema: FarmerLeafImageAnalysisOutputSchema,
   },
   async (input) => {
-    const {output} = await prompt(input); // Call the prompt directly. It handles the model and parsing.
+    const {output} = await prompt(input);
     return output!;
   }
 );

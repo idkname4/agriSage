@@ -2,7 +2,6 @@
 
 import { z } from 'zod';
 import { farmerLeafImageAnalysis, FarmerLeafImageAnalysisOutput } from '@/ai/flows/farmer-leaf-image-analysis';
-import { farmerAIRecommendations, FarmerAIRecommendationsOutput } from '@/ai/flows/farmer-ai-recommendations';
 
 const FormSchema = z.object({
   crop: z.string().optional(),
@@ -23,7 +22,6 @@ const FormSchema = z.object({
 export type AnalysisState = {
   error?: string | null;
   analysisResult?: FarmerLeafImageAnalysisOutput | null;
-  recommendationResult?: FarmerAIRecommendationsOutput | null;
 };
 
 export async function analyzeLeafImage(prevState: AnalysisState, formData: FormData): Promise<AnalysisState> {
@@ -63,16 +61,7 @@ export async function analyzeLeafImage(prevState: AnalysisState, formData: FormD
         return { analysisResult, error: 'The uploaded image does not appear to be a plant leaf. Please try another image.' };
     }
 
-    let recommendationResult: FarmerAIRecommendationsOutput | null = null;
-    if (analysisResult.identification.issueDetected) {
-        recommendationResult = await farmerAIRecommendations({
-            issueDescription: analysisResult.identification.issueDescription,
-            cropType: analysisResult.identification.plantType || crop || '',
-            location: location || '',
-        });
-    }
-
-    return { analysisResult, recommendationResult };
+    return { analysisResult };
   } catch (e: any) {
     console.error(e);
     return { error: e.message || 'An unexpected error occurred during analysis.' };
