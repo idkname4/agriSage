@@ -25,6 +25,10 @@ export type AnalysisState = {
 };
 
 export async function analyzeLeafImage(prevState: AnalysisState, formData: FormData): Promise<AnalysisState> {
+  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'YOUR_API_KEY_HERE') {
+    return { error: 'Missing Gemini API Key. Please add it to the .env file and restart the server.' };
+  }
+
   const validatedFields = FormSchema.safeParse({
     crop: formData.get('crop'),
     location: formData.get('location'),
@@ -64,6 +68,9 @@ export async function analyzeLeafImage(prevState: AnalysisState, formData: FormD
     return { analysisResult };
   } catch (e: any) {
     console.error(e);
+    if (e.message && e.message.includes('RESOURCE_EXHAUSTED')) {
+        return { error: 'The AI model is currently overloaded due to rate limits. Please ensure your API key is correct and has sufficient quota, then try again in a few moments.' };
+    }
     return { error: e.message || 'An unexpected error occurred during analysis.' };
   }
 }
