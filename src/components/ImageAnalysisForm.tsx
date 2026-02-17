@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useEffect, useState, useRef } from 'react';
+import { useFormStatus } from 'react-dom';
 import { analyzeLeafImage, AnalysisState } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Mic, UploadCloud, Leaf, Droplets, Shield, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 const initialState: AnalysisState = {
@@ -28,7 +28,7 @@ function SubmitButton() {
 }
 
 export function ImageAnalysisForm() {
-  const [state, formAction] = useFormState(analyzeLeafImage, initialState);
+  const [state, formAction] = useActionState(analyzeLeafImage, initialState);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
