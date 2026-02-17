@@ -5,8 +5,8 @@ import { farmerLeafImageAnalysis, FarmerLeafImageAnalysisOutput } from '@/ai/flo
 import { farmerAIRecommendations, FarmerAIRecommendationsOutput } from '@/ai/flows/farmer-ai-recommendations';
 
 const FormSchema = z.object({
-  crop: z.string().min(1, 'Crop type is required.'),
-  location: z.string().min(1, 'Location is required.'),
+  crop: z.string().optional(),
+  location: z.string().optional(),
   image: z
     .instanceof(File)
     .refine((file) => file.size > 0, 'An image is required.')
@@ -18,7 +18,6 @@ const FormSchema = z.object({
       (file) => ['image/jpeg', 'image/png', 'image/webp'].includes(file.type),
       'Only .jpg, .png, and .webp formats are supported.'
     ),
-  consent: z.string().optional(),
 });
 
 export type AnalysisState = {
@@ -32,31 +31,28 @@ export async function analyzeLeafImage(prevState: AnalysisState, formData: FormD
     crop: formData.get('crop'),
     location: formData.get('location'),
     image: formData.get('image'),
-    consent: formData.get('consent'),
   });
 
   if (!validatedFields.success) {
     return {
-      error: validatedFields.error.flatten().fieldErrors.image?.[0] || 
-             validatedFields.error.flatten().fieldErrors.crop?.[0] ||
-             validatedFields.error.flatten().fieldErrors.location?.[0] ||
-             'Invalid input.',
+      error: validatedFields.error.flatten().fieldErrors.image?.[0] || 'Invalid input.',
     };
   }
 
-  const { image, crop, location, consent } = validatedFields.data;
-
-  if (consent !== 'on') {
-    return { error: 'You must consent to data collection to proceed.' };
-  }
+  const { image, crop, location } = validatedFields.data;
 
   try {
     const buffer = Buffer.from(await image.arrayBuffer());
     const photoDataUri = `data:${image.type};base64,${buffer.toString('base64')}`;
 
+    const descriptionParts = [];
+    if (crop) descriptionParts.push(`Crop: ${crop}`);
+    if (location) descriptionParts.push(`Location: ${location}`);
+    const description = descriptionParts.join(', ');
+
     const analysisResult = await farmerLeafImageAnalysis({
       photoDataUri,
-      description: `Crop: ${crop}, Location: ${location}`,
+      description,
     });
 
     if (!analysisResult) {
@@ -71,8 +67,8 @@ export async function analyzeLeafImage(prevState: AnalysisState, formData: FormD
     if (analysisResult.identification.issueDetected) {
         recommendationResult = await farmerAIRecommendations({
             issueDescription: analysisResult.identification.issueDescription,
-            cropType: analysisResult.identification.plantType || crop,
-            location: location,
+            cropType: analysisResult.identification.plantType || crop || '',
+            location: location || '',
         });
     }
 

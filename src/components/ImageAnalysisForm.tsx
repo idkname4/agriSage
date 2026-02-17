@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Mic, UploadCloud, Leaf, Droplets, Shield, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import Image from 'next/image';
@@ -66,7 +65,7 @@ export function ImageAnalysisForm() {
         <CardHeader>
           <CardTitle>Upload Leaf Image</CardTitle>
           <CardDescription>
-            Select an image of a plant leaf for analysis. Please provide crop and location details for more accurate recommendations.
+            Select an image of a plant leaf for analysis. You can also provide crop and location details for more accurate recommendations.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -102,29 +101,17 @@ export function ImageAnalysisForm() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="crop">Crop Type</Label>
-                <Input id="crop" name="crop" placeholder="e.g., Tomato, Corn" required />
+                <Label htmlFor="crop">Crop Type (Optional)</Label>
+                <Input id="crop" name="crop" placeholder="e.g., Tomato, Corn" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">Location (Optional)</Label>
                 <div className="relative">
-                  <Input id="location" name="location" placeholder="e.g., Punjab, India" required />
+                  <Input id="location" name="location" placeholder="e.g., Punjab, India" />
                   <Button variant="ghost" size="icon" className="absolute right-1 top-1 h-8 w-8 text-muted-foreground animate-pulse hover:bg-transparent">
                     <Mic className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-3">
-              <Checkbox id="consent" name="consent" required/>
-              <div className="grid gap-1.5 leading-none">
-                <label htmlFor="consent" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  I consent to data collection
-                </label>
-                <p className="text-sm text-muted-foreground">
-                  Your image and data will be used to improve our AI models.
-                </p>
               </div>
             </div>
 

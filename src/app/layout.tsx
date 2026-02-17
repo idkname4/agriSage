@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'AgriVoice',
+  title: 'AgriSage',
   description: 'AI-powered agricultural assistant for farmers',
 };
 

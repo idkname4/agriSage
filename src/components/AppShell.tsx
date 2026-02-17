@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Leaf className="h-6 w-6 text-primary" />
             </div>
             <h1 className="font-headline text-2xl font-bold text-sidebar-foreground">
-              AgriVoice
+              AgriSage
             </h1>
           </div>
         </SidebarHeader>
