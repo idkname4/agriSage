@@ -42,14 +42,16 @@ export function ImageAnalysisForm() {
         description: state.error,
       });
     }
-    if(state.analysisResult) {
-        formRef.current?.reset();
-        setPreviewUrl(null);
-    }
+    // I've removed the automatic form reset to prevent confusion.
+    // The submitted image and results will now stay on screen.
   }, [state, toast]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
     if (file) {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -57,6 +59,15 @@ export function ImageAnalysisForm() {
       setPreviewUrl(null);
     }
   };
+
+  // Clean up object URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   return (
     <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-start">
