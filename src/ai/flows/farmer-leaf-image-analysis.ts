@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 
 const FarmerLeafImageAnalysisInputSchema = z.object({
   photoDataUri: z
@@ -65,7 +64,6 @@ const prompt = ai.definePrompt({
   name: 'farmerLeafImageAnalysisPrompt',
   input: { schema: FarmerLeafImageAnalysisInputSchema },
   output: { schema: FarmerLeafImageAnalysisOutputSchema },
-  model: googleAI.model('gemini-1.5-flash-latest'),
   prompt: `You are an expert agricultural AI assistant for AgriSage. Your task is to analyze a plant leaf image and provide a comprehensive analysis and recommendations.
 
 Analyze the provided image and any accompanying description to identify potential issues.
