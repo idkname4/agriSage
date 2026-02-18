@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Mic, UploadCloud, Leaf, Droplets, Shield, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { Mic, UploadCloud, Leaf, Droplets, Shield, Clock, AlertCircle, Loader2, AlertTriangle, FlaskConical, Sprout, Wrench } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const initialState: AnalysisState = {
   error: null,
@@ -42,8 +43,6 @@ export function ImageAnalysisForm() {
         description: state.error,
       });
     }
-    // I've removed the automatic form reset to prevent confusion.
-    // The submitted image and results will now stay on screen.
   }, [state, toast]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,7 +59,6 @@ export function ImageAnalysisForm() {
     }
   };
 
-  // Clean up object URLs on unmount to prevent memory leaks
   useEffect(() => {
     return () => {
       if (previewUrl) {
@@ -136,18 +134,41 @@ export function ImageAnalysisForm() {
               <CardTitle className="flex items-center gap-2"><Leaf className="text-accent" />Identification Results</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><p className="font-medium text-muted-foreground">Plant Type</p><p>{state.analysisResult.identification.plantType}</p></div>
-                <div><p className="font-medium text-muted-foreground">Confidence</p><p>{state.analysisResult.identification.confidence}</p></div>
-                <div><p className="font-medium text-muted-foreground">Issue Detected</p><p className={state.analysisResult.identification.issueDetected ? 'text-destructive' : 'text-green-600'}>{state.analysisResult.identification.issueDetected ? 'Yes' : 'No'}</p></div>
-                <div><p className="font-medium text-muted-foreground">Severity</p><p>{state.analysisResult.identification.severity || 'N/A'}</p></div>
+              <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                      <div><p className="font-medium text-muted-foreground">Plant Type</p><p className="font-semibold">{state.analysisResult.identification.plantType}</p></div>
+                      <div><p className="font-medium text-muted-foreground">Confidence</p><p className="font-semibold">{state.analysisResult.identification.confidence}</p></div>
+                  </div>
+                  {state.analysisResult.identification.issueDetected ? (
+                      <div className="space-y-4 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                              <div>
+                                  <p className="font-medium text-muted-foreground">Identified Issue</p>
+                                  <p className="font-bold text-destructive">{state.analysisResult.identification.issueName}</p>
+                              </div>
+                              <div>
+                                  <p className="font-medium text-muted-foreground">Issue Category</p>
+                                  <p className="font-semibold">{state.analysisResult.identification.issueType}</p>
+                              </div>
+                              <div>
+                                  <p className="font-medium text-muted-foreground">Severity</p>
+                                  <p className="font-semibold">{state.analysisResult.identification.severity}</p>
+                              </div>
+                              {state.analysisResult.identification.diseaseStage && (
+                                  <div>
+                                      <p className="font-medium text-muted-foreground">Disease Stage</p>
+                                      <p className="font-semibold">{state.analysisResult.identification.diseaseStage}</p>
+                                  </div>
+                              )}
+                          </div>
+                      </div>
+                  ) : (
+                      <div className="rounded-lg border border-green-600/20 bg-green-500/5 p-4 text-center">
+                          <p className="font-bold text-green-700">✓ Plant is Healthy</p>
+                          <p className="text-sm text-green-600">{state.analysisResult.identification.issueName}</p>
+                      </div>
+                  )}
               </div>
-              {state.analysisResult.identification.issueDetected && (
-                <div>
-                  <p className="font-medium text-muted-foreground">Issue Description</p>
-                  <p className="text-sm">{state.analysisResult.identification.issueDescription}</p>
-                </div>
-              )}
             </CardContent>
           </Card>
         ) : (
@@ -170,10 +191,29 @@ export function ImageAnalysisForm() {
                     <h3 className="font-semibold flex items-center gap-2 mb-1"><Clock className="w-4 h-4"/>Urgency Level</h3>
                     <p className="text-sm font-bold text-primary">{state.analysisResult.recommendations.urgencyLevel}</p>
                 </div>
+                {state.analysisResult.recommendations.immediateFix && (
+                    <div>
+                        <h3 className="font-semibold flex items-center gap-2 mb-1"><AlertTriangle className="w-4 h-4 text-yellow-500"/>Immediate Fix</h3>
+                        <p className="text-sm leading-relaxed">{state.analysisResult.recommendations.immediateFix}</p>
+                    </div>
+                )}
+                
                 <div>
-                    <h3 className="font-semibold flex items-center gap-2 mb-1"><Droplets className="w-4 h-4"/>Treatment</h3>
-                    <p className="text-sm leading-relaxed">{state.analysisResult.recommendations.treatmentRecommendation}</p>
+                    <h3 className="font-semibold flex items-center gap-2 mb-2"><Wrench className="w-4 h-4"/>Treatment Options</h3>
+                    <Tabs defaultValue="organic" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="organic"><Sprout className="mr-2"/>Organic</TabsTrigger>
+                            <TabsTrigger value="chemical"><FlaskConical className="mr-2"/>Chemical</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="organic" className="mt-4">
+                            <p className="text-sm leading-relaxed">{state.analysisResult.recommendations.organicTreatment}</p>
+                        </TabsContent>
+                        <TabsContent value="chemical" className="mt-4">
+                            <p className="text-sm leading-relaxed">{state.analysisResult.recommendations.chemicalTreatment}</p>
+                        </TabsContent>
+                    </Tabs>
                 </div>
+
                 <div>
                     <h3 className="font-semibold flex items-center gap-2 mb-1"><Shield className="w-4 h-4"/>Prevention</h3>
                     <p className="text-sm leading-relaxed">{state.analysisResult.recommendations.preventionMeasures}</p>
